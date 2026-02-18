@@ -1,0 +1,11 @@
+{
+  "name": "lecture-live-translator",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "openai": "^4.56.0"
+  }
+}

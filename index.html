@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Translator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      .controls {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      button,
+      select {
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+      }
+      .panel {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        min-height: 100px;
+        white-space: pre-wrap;
+      }
+      .label {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+      #status {
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Live Speech Translator</h1>
+
+    <div class="controls">
+      <button id="startBtn">Start</button>
+      <button id="stopBtn" disabled>Stop</button>
+
+      <label for="direction">Direction:</label>
+      <select id="direction">
+        <option value="ru-en">Russian → English</option>
+        <option value="en-ru">English → Russian</option>
+      </select>
+    </div>
+
+    <div id="status">Status: idle</div>
+
+    <div class="panel">
+      <div class="label">Recognized speech (source):</div>
+      <div id="sourceText"></div>
+    </div>
+
+    <div class="panel">
+      <div class="label">Translation:</div>
+      <div id="translatedText"></div>
+    </div>
+
+    <script src="./script.js" type="module"></script>
+  </body>
+</html>
