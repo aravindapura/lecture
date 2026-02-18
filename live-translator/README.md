@@ -32,3 +32,12 @@ Alternative: in Vercel project settings you can set Root Directory to `live-tran
 4. Deploy.
 
 API route: `POST /api/translate`.
+
+## If PR/branch update fails ("Failed to update PR" / "не удается обновить ветку")
+
+This usually means a secret was committed earlier and push protection blocks branch updates.
+
+1. Revoke leaked OpenAI key.
+2. Generate a new key and keep it only in Vercel env (`OPENAI_API_KEY`).
+3. Clean git history to remove commits containing the leaked key.
+4. Push again and re-run PR update.
