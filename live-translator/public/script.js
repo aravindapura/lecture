@@ -19,15 +19,15 @@ recognition.lang = "ru-RU";
 let listening = false;
 let finalizedSourceChunks = [];
 let finalizedTranslationChunks = [];
-let translatedSegments = new Set();
-let lastFinalTranscript = "";
+let lastSubmittedText = "";
+let requestQueue = Promise.resolve();
 
 function updateLanguageByDirection() {
   recognition.lang = directionSelect.value === "ru-en" ? "ru-RU" : "en-US";
 }
 
 async function translateText(text, direction) {
-  const response = await fetch("/translate", {
+  const response = await fetch("/api/translate", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -44,6 +44,28 @@ async function translateText(text, direction) {
   return data.translatedText || "";
 }
 
+function appendFinalSegment(transcript) {
+  if (!transcript || transcript === lastSubmittedText) {
+    return;
+  }
+
+  lastSubmittedText = transcript;
+  finalizedSourceChunks.push(transcript);
+  sourceTextEl.textContent = finalizedSourceChunks.join(" ");
+
+  requestQueue = requestQueue
+    .then(async () => {
+      const translated = await translateText(transcript, directionSelect.value);
+      if (translated) {
+        finalizedTranslationChunks.push(translated);
+        translatedTextEl.textContent = finalizedTranslationChunks.join(" ");
+      }
+    })
+    .catch((error) => {
+      statusEl.textContent = `Status: error - ${error.message}`;
+    });
+}
+
 startBtn.addEventListener("click", () => {
   if (listening) return;
 
@@ -57,6 +79,7 @@ startBtn.addEventListener("click", () => {
 
 stopBtn.addEventListener("click", () => {
   if (!listening) return;
+
   recognition.stop();
   listening = false;
   statusEl.textContent = "Status: stopped";
@@ -64,11 +87,9 @@ stopBtn.addEventListener("click", () => {
   stopBtn.disabled = true;
 });
 
-directionSelect.addEventListener("change", () => {
-  updateLanguageByDirection();
-});
+directionSelect.addEventListener("change", updateLanguageByDirection);
 
-recognition.onresult = async (event) => {
+recognition.onresult = (event) => {
   let interimTranscript = "";
 
   for (let i = event.resultIndex; i < event.results.length; i += 1) {
@@ -78,31 +99,15 @@ recognition.onresult = async (event) => {
     if (!transcript) continue;
 
     if (result.isFinal) {
-      if (transcript === lastFinalTranscript || translatedSegments.has(transcript)) {
-        continue;
-      }
-
-      lastFinalTranscript = transcript;
-      translatedSegments.add(transcript);
-      finalizedSourceChunks.push(transcript);
-      sourceTextEl.textContent = finalizedSourceChunks.join(" ");
-
-      try {
-        const translated = await translateText(transcript, directionSelect.value);
-        if (translated) {
-          finalizedTranslationChunks.push(translated);
-          translatedTextEl.textContent = finalizedTranslationChunks.join(" ");
-        }
-      } catch (error) {
-        statusEl.textContent = `Status: error - ${error.message}`;
-      }
+      appendFinalSegment(transcript);
     } else {
       interimTranscript += `${transcript} `;
     }
   }
 
-  if (interimTranscript.trim()) {
-    sourceTextEl.textContent = `${finalizedSourceChunks.join(" ")} ${interimTranscript.trim()}`.trim();
+  const interim = interimTranscript.trim();
+  if (interim) {
+    sourceTextEl.textContent = `${finalizedSourceChunks.join(" ")} ${interim}`.trim();
   } else {
     sourceTextEl.textContent = finalizedSourceChunks.join(" ");
   }
