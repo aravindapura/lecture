@@ -1,8 +1,4 @@
 {
-  "version": 2,
-  "functions": {
-    "api/translate.js": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2
 }
