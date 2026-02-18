@@ -3,40 +3,45 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Live Translator</title>
+    <title>Live Speech Translator</title>
     <style>
       body {
         font-family: Arial, sans-serif;
-        max-width: 800px;
+        max-width: 860px;
         margin: 2rem auto;
         padding: 0 1rem;
       }
+
       .controls {
         display: flex;
+        align-items: center;
         gap: 0.75rem;
         flex-wrap: wrap;
-        align-items: center;
-        margin-bottom: 1rem;
       }
+
       button,
       select {
-        padding: 0.5rem 0.75rem;
         font-size: 1rem;
+        padding: 0.55rem 0.8rem;
       }
+
+      #status {
+        margin: 0.8rem 0 1rem;
+        color: #444;
+      }
+
       .panel {
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 1rem;
+        border: 1px solid #dcdcdc;
+        border-radius: 10px;
+        min-height: 120px;
         margin-bottom: 1rem;
-        min-height: 100px;
+        padding: 1rem;
         white-space: pre-wrap;
       }
+
       .label {
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-      }
-      #status {
-        color: #555;
+        font-weight: 700;
+        margin-bottom: 0.6rem;
       }
     </style>
   </head>
@@ -66,6 +71,6 @@
       <div id="translatedText"></div>
     </div>
 
-    <script src="./script.js" type="module"></script>
+    <script type="module" src="/script.js"></script>
   </body>
 </html>
