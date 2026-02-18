@@ -2,13 +2,19 @@
 
 Real-time speech translator for Google Chrome using `webkitSpeechRecognition` on frontend and OpenAI translation in a Vercel serverless function.
 
+## Important: avoiding 404 on Vercel
+
+If your Vercel project is connected to the **repository root** (`/workspace/lecture`), this repo now includes root-level `index.html`, `script.js`, `api/translate.js`, and `vercel.json` so deployment works without setting a custom root directory.
+
+Alternative: in Vercel project settings you can set Root Directory to `live-translator`.
+
 ## Run locally
 
-1. Install dependencies:
+1. Install dependencies (in repository root):
    ```bash
    npm install
    ```
-2. Create `.env` in this folder:
+2. Create `.env` in repository root (or set env var in shell):
    ```env
    OPENAI_API_KEY=your_key_here
    ```
