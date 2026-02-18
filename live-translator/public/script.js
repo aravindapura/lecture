@@ -35,10 +35,19 @@ async function translateText(text, direction) {
     body: JSON.stringify({ text, direction }),
   });
 
-  const data = await response.json().catch(() => ({}));
+  let data = {};
+  let rawText = "";
+
+  try {
+    data = await response.json();
+  } catch {
+    rawText = await response.text().catch(() => "");
+  }
 
   if (!response.ok) {
-    throw new Error(data.error || `Translation request failed (${response.status}).`);
+    throw new Error(
+      data.error || rawText.slice(0, 180) || `Translation request failed (${response.status}).`,
+    );
   }
 
   return data.translatedText || "";
