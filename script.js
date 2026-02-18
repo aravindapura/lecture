@@ -1,14 +1,14 @@
 const startBtn = document.getElementById("startBtn");
 const stopBtn = document.getElementById("stopBtn");
 const directionSelect = document.getElementById("direction");
-const translationEl = document.getElementById("translatedText");
-const sourceEl = document.getElementById("sourceText");
-const statusEl = document.getElementById("status");
+const sourceElement = document.getElementById("sourceText");
+const translationElement = document.getElementById("translatedText");
+const statusElement = document.getElementById("status");
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if (!SpeechRecognition) {
-  statusEl.textContent = "Status: Web Speech API is not supported in this browser. Use Google Chrome.";
+  statusElement.textContent = "Status: Web Speech API is not supported in this browser. Use Google Chrome.";
   startBtn.disabled = true;
   throw new Error("Web Speech API is not available");
 }
@@ -19,57 +19,39 @@ recognition.interimResults = true;
 recognition.lang = "ru-RU";
 
 let listening = false;
-let lastFinalTranscript = "";
-const translatedChunks = [];
-const sourceChunks = [];
-let queue = Promise.resolve();
+const processedFinalSignatures = new Set();
 
 function updateRecognitionLanguage() {
   recognition.lang = directionSelect.value === "ru-en" ? "ru-RU" : "en-US";
 }
 
-async function translateText(text, direction) {
-  const response = await fetch("/api/translate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, direction }),
-  });
-
-  let payload = {};
+async function sendForTranslation(recognizedText, selectedDirection) {
   try {
-    payload = await response.json();
-  } catch {
-    payload = {};
-  }
-
-  if (!response.ok) {
-    throw new Error(payload.error || `Translation failed (${response.status})`);
-  }
-
-  return payload.translated || "";
-}
-
-function handleFinalText(transcript) {
-  if (!transcript || transcript === lastFinalTranscript) {
-    return;
-  }
-
-  lastFinalTranscript = transcript;
-  sourceChunks.push(transcript);
-  sourceEl.textContent = sourceChunks.join(" ");
-
-  queue = queue
-    .then(async () => {
-      const translated = await translateText(transcript, directionSelect.value);
-      if (translated) {
-        translatedChunks.push(translated);
-        translationEl.textContent = translatedChunks.join(" ");
-      }
-    })
-    .catch((error) => {
-      statusEl.textContent = `Status: error - ${error.message}`;
-      console.error("Translate queue error:", error);
+    const response = await fetch("/api/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: recognizedText,
+        direction: selectedDirection,
+      }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `Translation request failed (${response.status})`);
+    }
+
+    const data = await response.json();
+
+    if (data.translated) {
+      translationElement.textContent += `${data.translated} `;
+    }
+  } catch (error) {
+    statusElement.textContent = `Status: translation error - ${error.message}`;
+    console.error("Translation error:", error);
+  }
 }
 
 startBtn.addEventListener("click", () => {
@@ -78,7 +60,7 @@ startBtn.addEventListener("click", () => {
   updateRecognitionLanguage();
   recognition.start();
   listening = true;
-  statusEl.textContent = "Status: listening...";
+  statusElement.textContent = "Status: listening...";
   startBtn.disabled = true;
   stopBtn.disabled = false;
 });
@@ -88,7 +70,7 @@ stopBtn.addEventListener("click", () => {
 
   listening = false;
   recognition.stop();
-  statusEl.textContent = "Status: stopped";
+  statusElement.textContent = "Status: stopped";
   startBtn.disabled = false;
   stopBtn.disabled = true;
 });
@@ -96,29 +78,37 @@ stopBtn.addEventListener("click", () => {
 directionSelect.addEventListener("change", updateRecognitionLanguage);
 
 recognition.onresult = (event) => {
-  let interim = "";
+  let interimTranscript = "";
 
   for (let i = event.resultIndex; i < event.results.length; i += 1) {
     const result = event.results[i];
-    const text = result[0].transcript.trim();
+    const recognizedText = result[0].transcript.trim();
 
-    if (!text) continue;
+    if (!recognizedText) continue;
 
     if (result.isFinal) {
-      handleFinalText(text);
+      const signature = `${i}:${recognizedText}`;
+      if (processedFinalSignatures.has(signature)) {
+        continue;
+      }
+
+      processedFinalSignatures.add(signature);
+
+      sourceElement.textContent += `${recognizedText} `;
+      sendForTranslation(recognizedText, directionSelect.value);
     } else {
-      interim += `${text} `;
+      interimTranscript += `${recognizedText} `;
     }
   }
 
-  const interimText = interim.trim();
-  sourceEl.textContent = interimText
-    ? `${sourceChunks.join(" ")} ${interimText}`.trim()
-    : sourceChunks.join(" ");
+  if (interimTranscript) {
+    statusElement.textContent = "Status: listening...";
+  }
 };
 
 recognition.onerror = (event) => {
-  statusEl.textContent = `Status: recognition error - ${event.error}`;
+  statusElement.textContent = `Status: recognition error - ${event.error}`;
+  console.error("Recognition error:", event.error);
 };
 
 recognition.onend = () => {
