@@ -28,11 +28,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  ["Проблема", "проблема"],
-  ["Решение", "решение"],
-  ["Dashboard", "dashboard"],
-  ["Цена", "pricing"],
+const navItems: Array<{ label: string; href: string }> = [
+  { label: "Проблема", href: "#проблема" },
+  { label: "Решение", href: "#решение" },
+  { label: "Dashboard", href: "#dashboard" },
+  { label: "Цена", href: "#pricing" },
 ];
 const proofItems = ["Подходит для автопарков", "Логистических компаний", "Сервисных служб", "Корпоративного транспорта"];
 const problems = [
@@ -110,8 +110,8 @@ function Header() {
         </a>
         <div className="hidden items-center gap-7 text-sm text-slate-300 md:flex">
           {navItems.map((item) => (
-            <a key={item} href={`#${item[1]}`} className="transition hover:text-white">
-              {item[0]}
+            <a key={item.href} href={item.href} className="transition hover:text-white">
+              {item.label}
             </a>
           ))}
         </div>
